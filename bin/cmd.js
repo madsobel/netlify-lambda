@@ -17,7 +17,8 @@ program.version(pkg.version);
 
 program
   .option("-c --config <webpack-config>", "additional webpack configuration")
-  .option("-p --port <port>", "port to serve from (default: 9000)")
+  .option("--no-webpack", "No webpack")
+  .option("-p --port <port>", "port to serve from (default: 9000)");
 
 program
   .command("serve <dir>")
@@ -25,18 +26,20 @@ program
   .action(function(cmd, options) {
     console.log("Starting server");
     var server = serve.listen(program.port || 9000);
-    build.watch(cmd, program.config, function(err, stats) {
-      if (err) {
-        console.error(err);
-        return;
-      }
+    if (program.webpack) {
+      build.watch(cmd, program.config, function(err, stats) {
+        if (err) {
+          console.error(err);
+          return;
+        }
 
-      stats.compilation.chunks.forEach(function(chunk) {
-        server.clearCache(chunk.name);
+        stats.compilation.chunks.forEach(function(chunk) {
+          server.clearCache(chunk.name);
+        });
+
+        console.log(stats.toString({ color: true }));
       });
-
-      console.log(stats.toString({ color: true }));
-    });
+    }
   });
 
 program
